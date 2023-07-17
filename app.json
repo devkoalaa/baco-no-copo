@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Koala Teste",
+    "icon": "./assets/icon.png",
+    "version": "1.0.0",
+    "slug": "KoalaTeste",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.devkoalaa.koalateste",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.devkoalaa.koalateste",
+      "versionCode": 1
+    },
+    "extra": {
+      "eas": {
+        "projectId": "52b31d01-0aaa-46df-b254-923a70af814f"
+      }
+    }
+  }
+}
