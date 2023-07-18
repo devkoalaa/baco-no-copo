@@ -12,6 +12,7 @@
     "@tamagui/animations-react-native": "^1.30.0",
     "@tamagui/babel-plugin": "^1.30.0",
     "@tamagui/config": "^1.30.0",
+    "@tamagui/dialog": "^1.43.10",
     "@tamagui/font-inter": "^1.30.0",
     "@tamagui/lucide-icons": "^1.30.0",
     "@tamagui/theme-base": "^1.30.0",

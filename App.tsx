@@ -1,11 +1,11 @@
 import { useFonts } from "expo-font";
-import { Input, TamaguiProvider, Theme, XStack, YStack, Text } from "tamagui";
+import * as SecureStore from 'expo-secure-store';
+import React, { useEffect, useState } from "react";
+import { Input, TamaguiProvider, Text, Theme, XStack, YStack } from "tamagui";
+import { Button } from "./src/components/Button";
 import { ChangeTheme } from "./src/components/ChangeTheme";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
-import React, { useEffect, useState } from "react";
-import { Button } from "./src/components/Button";
-import * as SecureStore from 'expo-secure-store'
 
 interface Item {
   nome: string;
@@ -50,6 +50,11 @@ export default function App() {
     }
   }
 
+  function cleantList() {
+    SecureStore.setItemAsync('BacoNoCopo.itens', "")
+    setListaItens([])
+  }
+
   function somaItem(selectedItem: Item) {
 
     const listaUpdate = listaItens.map(obj => {
@@ -81,9 +86,10 @@ export default function App() {
               focusStyle={{ bw: 2, boc: "$blue10" }}
             />
             <Button tipo="normal" onPress={submitItem} />
+            <Button tipo="delete" onPress={cleantList} />
           </XStack>
           {listaItens && listaItens.map((item: Item, index: number) => (
-            <YStack onPress={(e) => somaItem(item)} key={index} p="$4" marginVertical="$2" backgroundColor='$gray10Light' borderRadius='$2'>
+            <YStack onPress={() => somaItem(item)} key={index} p="$4" marginVertical="$2" backgroundColor='$gray10Light' borderRadius='$2'>
               <XStack justifyContent="space-between">
                 <Text>
                   {item.nome}
@@ -95,7 +101,7 @@ export default function App() {
             </YStack>
           ))}
         </YStack>
-      </Theme>
-    </TamaguiProvider>
+      </Theme >
+    </TamaguiProvider >
   );
 }
