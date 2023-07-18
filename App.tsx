@@ -1,12 +1,21 @@
 import { useFonts } from "expo-font";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
-import { Input, TamaguiProvider, Text, Theme, XStack, YStack } from "tamagui";
+import {
+  Image,
+  Input,
+  TamaguiProvider,
+  Text,
+  Theme,
+  XStack,
+  YStack,
+} from "tamagui";
 import { Button } from "./src/components/Button";
 import { ChangeTheme } from "./src/components/ChangeTheme";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
 import { Plus, Trash } from "@tamagui/lucide-icons";
+import { ScrollView } from "react-native";
 
 interface Item {
   nome: string;
@@ -63,13 +72,14 @@ export default function App() {
       }
       return obj;
     });
+
     setListaItens(listaUpdate);
   }
 
   return (
     <TamaguiProvider config={config}>
       <Theme name={isDarkTheme ? "dark" : "light"}>
-        <YStack bg="$background" f={1} p="$4" pt="$8">
+        <YStack bg="$background" f={1} p="$3" pt="$8">
           <XStack jc="flex-start" ai="center">
             <User />
             {/* <ChangeTheme onCheckedChange={setIsDarkTheme} /> */}
@@ -85,26 +95,46 @@ export default function App() {
               onChangeText={setAddItem}
               placeholder="Adicionar item..."
               focusStyle={{ bw: 2, boc: "$blue10" }}
+              marginBottom="$2"
             />
-            <Button icon={Plus} tipo="toxic" onPress={submitItem} />
+            <Button icon={Plus} tipo="normal" onPress={submitItem} />
             <Button icon={Trash} tipo="delete" onPress={cleanList} />
           </XStack>
-          {listaItens &&
-            listaItens.map((item: Item, index: number) => (
-              <YStack
-                onPress={() => somaItem(item)}
-                key={index}
-                p="$4"
-                marginVertical="$2"
-                backgroundColor="$green10Dark"
-                borderRadius="$2"
-              >
-                <XStack justifyContent="space-between">
-                  <Text>{item.nome}</Text>
-                  <Text fontWeight="bold">{item.quantidade}</Text>
-                </XStack>
-              </YStack>
-            ))}
+          <ScrollView>
+            {listaItens &&
+              listaItens.map((item: Item, index: number) => (
+                <YStack
+                  onPress={() => somaItem(item)}
+                  key={index}
+                  p="$4"
+                  marginBottom="$2"
+                  backgroundColor="$gray3"
+                  borderRadius="$4"
+                >
+                  <XStack jc="center">
+                    <Text
+                      fontWeight="bold"
+                      marginBottom="$3"
+                      alignContent="center"
+                    >
+                      {item.nome}
+                    </Text>
+                  </XStack>
+                  <XStack jc={"space-between"}>
+                    <Image
+                      source={require("./assets/petra.png")}
+                      w="$10"
+                      h="$10"
+                    />
+                    <YStack jc={"center"}>
+                      <Text fontSize="$10" fontWeight="bold">
+                        {item.quantidade}
+                      </Text>
+                    </YStack>
+                  </XStack>
+                </YStack>
+              ))}
+          </ScrollView>
         </YStack>
       </Theme>
     </TamaguiProvider>
