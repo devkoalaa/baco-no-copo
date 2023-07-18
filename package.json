@@ -18,14 +18,15 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "expo": "~48.0.15",
     "expo-font": "^11.1.1",
+    "expo-secure-store": "^12.3.1",
     "expo-status-bar": "~1.4.4",
     "react": "18.2.0",
     "react-dom": "^18.2.0",
     "react-native": "0.71.8",
     "react-native-reanimated": "~2.14.4",
+    "react-native-svg": "13.4.0",
     "react-native-web": "^0.19.4",
-    "tamagui": "^1.30.0",
-    "react-native-svg": "13.4.0"
+    "tamagui": "^1.30.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
