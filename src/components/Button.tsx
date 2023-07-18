@@ -1,15 +1,16 @@
 import { Button as TButton, styled } from "tamagui";
-import { Circle } from "@tamagui/lucide-icons";
 
 export const Button = styled(TButton, {
   w: "$5",
   h: "$5",
-  icon: Circle,
 
   variants: {
     tipo: {
       normal: {
         bg: "$blue10",
+      },
+      toxic: {
+        bg: "$purple10",
       },
       delete: {
         bg: "$red10",
