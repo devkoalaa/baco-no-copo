@@ -1,10 +1,11 @@
-import { Image as ImageIcon, Plus, Trash, Minus } from "@tamagui/lucide-icons";
+import { Image as ImageIcon, Minus, Plus, Trash } from "@tamagui/lucide-icons";
 import { useFonts } from "expo-font";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
 import {
+  AlertDialog,
   Dialog,
   Image,
   Input,
@@ -17,12 +18,11 @@ import {
 import { Button as CustomButton } from "./src/components/Button";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
-import { set } from "react-native-reanimated";
 
 interface Item {
   nome: string;
   quantidade: number;
-  imagem: string;
+  imagem?: string;
 }
 
 export default function App() {
@@ -36,7 +36,7 @@ export default function App() {
   const [listaItens, setListaItens] = useState<Item[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [openModalItem, setOpenModalItem] = useState(false);
-  const [quantidadeItem, setQuantidadeItem] = useState(0);
+  const [openModalAlert, setOpenModalAlert] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item>();
 
   useEffect(() => {
@@ -47,7 +47,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setQuantidadeItem(selectedItem?.quantidade || 0);
     setPreview(selectedItem?.imagem || "");
   }, [selectedItem]);
 
@@ -60,7 +59,7 @@ export default function App() {
   }
 
   function submitItem() {
-    if (addItem && preview) {
+    if (addItem) {
       const newItem: Item = { nome: addItem, quantidade: 0, imagem: preview };
 
       setListaItens([newItem, ...listaItens]);
@@ -138,7 +137,7 @@ export default function App() {
               {preview && (
                 <Image
                   margin="$2"
-                  borderRadius={1000}
+                  borderRadius="$4"
                   source={{ width: 10, height: 10, uri: preview }}
                   width={250}
                   height={250}
@@ -182,15 +181,20 @@ export default function App() {
         <Dialog.Portal>
           <Dialog.Overlay onPress={() => setOpenModalItem(false)} />
           <Dialog.Content>
-            <Dialog.Title>
-              <Text>Alterar quantidade</Text>
-            </Dialog.Title>
             <Dialog.Description />
             <YStack alignItems="center" space="$2">
+              <Text
+                fontWeight="bold"
+                marginBottom="$3"
+                alignContent="center"
+                fontSize={"$8"}
+              >
+                Editar item
+              </Text>
               {preview && (
                 <Image
                   margin="$2"
-                  borderRadius={1000}
+                  borderRadius="$4"
                   source={{ width: 10, height: 10, uri: preview }}
                   width={250}
                   height={250}
@@ -218,6 +222,39 @@ export default function App() {
     );
   }
 
+  function ModalAlert() {
+    return (
+      <AlertDialog open={openModalAlert}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay onPress={() => setOpenModalAlert(false)} />
+          <AlertDialog.Content>
+            <YStack alignItems="center" space="$2">
+              <Text
+                fontWeight="bold"
+                marginBottom="$3"
+                alignContent="center"
+                fontSize={"$8"}
+              >
+                Apagar lista?
+              </Text>
+              <CustomButton
+                marginTop={"$2"}
+                width={"100%"}
+                tipo="delete"
+                icon={Trash}
+                onPress={() => {
+                  setListaItens([]), setOpenModalAlert(false);
+                }}
+              >
+                Sim
+              </CustomButton>
+            </YStack>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog>
+    );
+  }
+
   return (
     <TamaguiProvider config={config}>
       <Theme name={"dark"}>
@@ -225,7 +262,11 @@ export default function App() {
           <XStack jc="space-between" ai="center">
             <User />
             <XStack space={"$2"}>
-              <CustomButton icon={Trash} tipo="delete" onPress={cleanList} />
+              <CustomButton
+                icon={Trash}
+                tipo="delete"
+                onPress={() => setOpenModalAlert(true)}
+              />
               <CustomButton
                 icon={Plus}
                 tipo="normal"
@@ -239,6 +280,7 @@ export default function App() {
           <XStack space="$2" marginVertical="$2" jc="flex-end">
             <Modal />
             <ModalItem />
+            <ModalAlert />
           </XStack>
           <ScrollView>
             {listaItens &&
@@ -247,8 +289,6 @@ export default function App() {
                   onPress={() => {
                     setSelectedItem(item);
                     setOpenModalItem(true);
-                    // setPreview(item.imagem);
-                    // setQuantidadeItem(item.quantidade);
                   }}
                   key={index}
                   p="$4"
@@ -261,13 +301,14 @@ export default function App() {
                       fontWeight="bold"
                       marginBottom="$3"
                       alignContent="center"
+                      fontSize={"$8"}
                     >
                       {item.nome}
                     </Text>
                   </XStack>
                   <XStack jc={"space-between"}>
                     <Image
-                      borderRadius={1000}
+                      borderRadius="$4"
                       source={{ width: 10, height: 10, uri: item.imagem }}
                       width={100}
                       height={100}
