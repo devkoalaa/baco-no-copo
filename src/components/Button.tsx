@@ -14,10 +14,13 @@ export const Button = styled(TButton, {
       },
       delete: {
         bg: "$red10",
+      },      
+      modal: {
+        bg: "$green10",
       },
       outline: {
         borderWidth: "$1",
-        borderColor: "$blue10",
+        borderColor: "rgba(0, 0, 0, 0)",
       },
     },
   } as const,

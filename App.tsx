@@ -1,10 +1,11 @@
-import { Plus, Trash, Image as ImageIcon } from "@tamagui/lucide-icons";
+import { Image as ImageIcon, Plus, Trash, Minus } from "@tamagui/lucide-icons";
 import { useFonts } from "expo-font";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
 import {
+  Dialog,
   Image,
   Input,
   TamaguiProvider,
@@ -13,10 +14,11 @@ import {
   XStack,
   YStack,
 } from "tamagui";
-import { Button } from "./src/components/Button";
+import { Button as CustomButton } from "./src/components/Button";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
-import { ChangeTheme } from "./src/components/ChangeTheme";
+import { set } from "react-native-reanimated";
+
 interface Item {
   nome: string;
   quantidade: number;
@@ -28,11 +30,14 @@ export default function App() {
     Inter: require("@tamagui/font-inter/otf/Inter-Medium.otf"),
     InterBold: require("@tamagui/font-inter/otf/Inter-Bold.otf"),
   });
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
 
   const [preview, setPreview] = useState("");
   const [addItem, setAddItem] = useState("");
   const [listaItens, setListaItens] = useState<Item[]>([]);
+  const [openModal, setOpenModal] = useState(false);
+  const [openModalItem, setOpenModalItem] = useState(false);
+  const [quantidadeItem, setQuantidadeItem] = useState(0);
+  const [selectedItem, setSelectedItem] = useState<Item>();
 
   useEffect(() => {
     SecureStore.getItemAsync("BacoNoCopo.itens").then((response) => {
@@ -40,6 +45,11 @@ export default function App() {
       resultado && setListaItens(JSON.parse(resultado));
     });
   }, []);
+
+  useEffect(() => {
+    setQuantidadeItem(selectedItem?.quantidade || 0);
+    setPreview(selectedItem?.imagem || "");
+  }, [selectedItem]);
 
   useEffect(() => {
     SecureStore.setItemAsync("BacoNoCopo.itens", JSON.stringify(listaItens));
@@ -50,7 +60,7 @@ export default function App() {
   }
 
   function submitItem() {
-    if (addItem) {
+    if (addItem && preview) {
       const newItem: Item = { nome: addItem, quantidade: 0, imagem: preview };
 
       setListaItens([newItem, ...listaItens]);
@@ -58,7 +68,9 @@ export default function App() {
       console.log("Item Add:", addItem);
       console.log("Lista Itens:", listaItens);
 
+      setOpenModal(false);
       setAddItem("");
+      setPreview("");
     }
   }
 
@@ -67,15 +79,30 @@ export default function App() {
     setListaItens([]);
   }
 
-  function somaItem(selectedItem: Item) {
-    const listaUpdate = listaItens.map((obj) => {
-      if (obj.nome == selectedItem.nome) {
-        obj.quantidade++;
-      }
-      return obj;
-    });
+  function somaItem() {
+    if (selectedItem) {
+      const listaUpdate = listaItens.map((obj) => {
+        if (obj.nome == selectedItem.nome) {
+          obj.quantidade++;
+        }
+        return obj;
+      });
 
-    setListaItens(listaUpdate);
+      setListaItens(listaUpdate);
+    }
+  }
+
+  function subtraiItem() {
+    if (selectedItem) {
+      const listaUpdate = listaItens.map((obj) => {
+        if (obj.nome == selectedItem.nome) {
+          obj.quantidade--;
+        }
+        return obj;
+      });
+
+      setListaItens(listaUpdate);
+    }
   }
 
   async function openImagePicker() {
@@ -93,36 +120,136 @@ export default function App() {
     }
   }
 
+  function Modal() {
+    return (
+      <Dialog open={openModal}>
+        <Dialog.Portal>
+          <Dialog.Overlay
+            onPress={() => {
+              setOpenModal(false), setPreview("");
+            }}
+          />
+          <Dialog.Content>
+            <Dialog.Title>
+              <Text>Adicionar item</Text>
+            </Dialog.Title>
+            <Dialog.Description />
+            <YStack alignItems="center">
+              {preview && (
+                <Image
+                  margin="$2"
+                  borderRadius={1000}
+                  source={{ width: 10, height: 10, uri: preview }}
+                  width={250}
+                  height={250}
+                />
+              )}
+              <XStack space="$2">
+                <Input
+                  keyboardType="default"
+                  returnKeyType="done"
+                  f={1}
+                  w="$5"
+                  h="$5"
+                  value={addItem}
+                  onChangeText={setAddItem}
+                  placeholder="Descrição do item"
+                  focusStyle={{ bw: 2, boc: "$blue10" }}
+                  marginBottom="$2"
+                />
+                <CustomButton
+                  icon={ImageIcon}
+                  tipo="toxic"
+                  onPress={openImagePicker}
+                />
+              </XStack>
+              <CustomButton
+                width={"100%"}
+                icon={Plus}
+                tipo="normal"
+                onPress={submitItem}
+              />
+            </YStack>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+    );
+  }
+
+  function ModalItem() {
+    return (
+      <Dialog open={openModalItem}>
+        <Dialog.Portal>
+          <Dialog.Overlay onPress={() => setOpenModalItem(false)} />
+          <Dialog.Content>
+            <Dialog.Title>
+              <Text>Alterar quantidade</Text>
+            </Dialog.Title>
+            <Dialog.Description />
+            <YStack alignItems="center" space="$2">
+              {preview && (
+                <Image
+                  margin="$2"
+                  borderRadius={1000}
+                  source={{ width: 10, height: 10, uri: preview }}
+                  width={250}
+                  height={250}
+                />
+              )}
+              <CustomButton
+                width={"100%"}
+                icon={Plus}
+                tipo="normal"
+                onPress={somaItem}
+              />
+              <Text fontSize="$10" fontWeight="bold">
+                {selectedItem?.quantidade}
+              </Text>
+              <CustomButton
+                width={"100%"}
+                icon={Minus}
+                tipo="normal"
+                onPress={subtraiItem}
+              />
+            </YStack>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+    );
+  }
+
   return (
     <TamaguiProvider config={config}>
-      <Theme name={isDarkTheme ? "light" : "dark"}>
+      <Theme name={"dark"}>
         <YStack bg="$background" f={1} p="$3" pt="$8">
           <XStack jc="space-between" ai="center">
             <User />
-            <ChangeTheme onCheckedChange={setIsDarkTheme} />
+            <XStack space={"$2"}>
+              <CustomButton icon={Trash} tipo="delete" onPress={cleanList} />
+              <CustomButton
+                icon={Plus}
+                tipo="normal"
+                onPress={() => {
+                  setOpenModal(true);
+                  setPreview("");
+                }}
+              />
+            </XStack>
           </XStack>
-          <XStack space="$2" mt="$6">
-            <Input
-              keyboardType="default"
-              returnKeyType="done"
-              f={1}
-              w="$5"
-              h="$5"
-              value={addItem}
-              onChangeText={setAddItem}
-              placeholder="Adicionar item..."
-              focusStyle={{ bw: 2, boc: "$blue10" }}
-              marginBottom="$2"
-            />
-            <Button icon={ImageIcon} tipo="toxic" onPress={openImagePicker} />
-            <Button icon={Plus} tipo="normal" onPress={submitItem} />
-            <Button icon={Trash} tipo="delete" onPress={cleanList} />
+          <XStack space="$2" marginVertical="$2" jc="flex-end">
+            <Modal />
+            <ModalItem />
           </XStack>
           <ScrollView>
             {listaItens &&
               listaItens.map((item: Item, index: number) => (
                 <YStack
-                  onPress={() => somaItem(item)}
+                  onPress={() => {
+                    setSelectedItem(item);
+                    setOpenModalItem(true);
+                    // setPreview(item.imagem);
+                    // setQuantidadeItem(item.quantidade);
+                  }}
                   key={index}
                   p="$4"
                   marginBottom="$2"
@@ -140,7 +267,7 @@ export default function App() {
                   </XStack>
                   <XStack jc={"space-between"}>
                     <Image
-                      // source={require("./assets/petra.png")}
+                      borderRadius={1000}
                       source={{ width: 10, height: 10, uri: item.imagem }}
                       width={100}
                       height={100}
