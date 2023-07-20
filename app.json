@@ -3,7 +3,7 @@
     "name": "Baco no Copo",
     "icon": "./assets/icon.png",
     "version": "1.0.0",
-    "slug": "BacoNoCopo",
+    "slug": "baconocopo",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "splash": {
@@ -27,7 +27,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "52b31d01-0aaa-46df-b254-923a70af814f"
+        "projectId": "d66dbd51-53a2-42ef-96bc-42bc73920a95"
       }
     }
   }
