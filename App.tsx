@@ -1,6 +1,9 @@
+import { Plus, Trash, Image as ImageIcon } from "@tamagui/lucide-icons";
 import { useFonts } from "expo-font";
+import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
+import { ScrollView } from "react-native";
 import {
   Image,
   Input,
@@ -11,33 +14,32 @@ import {
   YStack,
 } from "tamagui";
 import { Button } from "./src/components/Button";
-import { ChangeTheme } from "./src/components/ChangeTheme";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
-import { Plus, Trash } from "@tamagui/lucide-icons";
-import { ScrollView } from "react-native";
-
+import { ChangeTheme } from "./src/components/ChangeTheme";
 interface Item {
   nome: string;
   quantidade: number;
+  imagem: string;
 }
 
 export default function App() {
+  const [loaded] = useFonts({
+    Inter: require("@tamagui/font-inter/otf/Inter-Medium.otf"),
+    InterBold: require("@tamagui/font-inter/otf/Inter-Bold.otf"),
+  });
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+
+  const [preview, setPreview] = useState("");
+  const [addItem, setAddItem] = useState("");
+  const [listaItens, setListaItens] = useState<Item[]>([]);
+
   useEffect(() => {
     SecureStore.getItemAsync("BacoNoCopo.itens").then((response) => {
       const resultado = response;
       resultado && setListaItens(JSON.parse(resultado));
     });
   }, []);
-
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
-  const [loaded] = useFonts({
-    Inter: require("@tamagui/font-inter/otf/Inter-Medium.otf"),
-    InterBold: require("@tamagui/font-inter/otf/Inter-Bold.otf"),
-  });
-
-  const [addItem, setAddItem] = useState("");
-  const [listaItens, setListaItens] = useState<Item[]>([]);
 
   useEffect(() => {
     SecureStore.setItemAsync("BacoNoCopo.itens", JSON.stringify(listaItens));
@@ -49,12 +51,12 @@ export default function App() {
 
   function submitItem() {
     if (addItem) {
-      const newItem: Item = { nome: addItem, quantidade: 0 };
+      const newItem: Item = { nome: addItem, quantidade: 0, imagem: preview };
 
       setListaItens([newItem, ...listaItens]);
 
-      console.log("item:", addItem);
-      console.log("lista:", listaItens);
+      console.log("Item Add:", addItem);
+      console.log("Lista Itens:", listaItens);
 
       setAddItem("");
     }
@@ -76,13 +78,28 @@ export default function App() {
     setListaItens(listaUpdate);
   }
 
+  async function openImagePicker() {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+
+      if (result.assets) {
+        setPreview(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <TamaguiProvider config={config}>
-      <Theme name={isDarkTheme ? "dark" : "light"}>
+      <Theme name={isDarkTheme ? "light" : "dark"}>
         <YStack bg="$background" f={1} p="$3" pt="$8">
-          <XStack jc="flex-start" ai="center">
+          <XStack jc="space-between" ai="center">
             <User />
-            {/* <ChangeTheme onCheckedChange={setIsDarkTheme} /> */}
+            <ChangeTheme onCheckedChange={setIsDarkTheme} />
           </XStack>
           <XStack space="$2" mt="$6">
             <Input
@@ -97,6 +114,7 @@ export default function App() {
               focusStyle={{ bw: 2, boc: "$blue10" }}
               marginBottom="$2"
             />
+            <Button icon={ImageIcon} tipo="toxic" onPress={openImagePicker} />
             <Button icon={Plus} tipo="normal" onPress={submitItem} />
             <Button icon={Trash} tipo="delete" onPress={cleanList} />
           </XStack>
@@ -122,9 +140,10 @@ export default function App() {
                   </XStack>
                   <XStack jc={"space-between"}>
                     <Image
-                      source={require("./assets/petra.png")}
-                      w="$10"
-                      h="$10"
+                      // source={require("./assets/petra.png")}
+                      source={{ width: 10, height: 10, uri: item.imagem }}
+                      width={100}
+                      height={100}
                     />
                     <YStack jc={"center"}>
                       <Text fontSize="$10" fontWeight="bold">
