@@ -21,9 +21,10 @@ import config from "./tamagui.config";
 import { api, imagemDefault } from "./api";
 
 interface Item {
-  nome: string;
-  quantidade: number;
-  imagem?: string;
+  id?: String;
+  name: string;
+  quantity: number;
+  image?: string;
 }
 
 export default function App() {
@@ -39,24 +40,25 @@ export default function App() {
   const [openModalItem, setOpenModalItem] = useState(false);
   const [openModalAlert, setOpenModalAlert] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item>();
+  let newArrItems: Item[] = [];
 
   useEffect(() => {
-    SecureStore.getItemAsync("BacoNoCopo.itens").then((response) => {
-      const resultado = response;
-      resultado && setListaItens(JSON.parse(resultado));
-    });
+    // SecureStore.getItemAsync("BacoNoCopo.itens").then((response) => {
+    //   const resultado = response;
+    //   resultado && setListaItens(JSON.parse(resultado));
+    // });
 
     loadItems();
   }, []);
 
   useEffect(() => {
-    setPreview(selectedItem?.imagem || "");
+    setPreview(selectedItem?.image || "");
   }, [selectedItem]);
 
-  useEffect(() => {
-    SecureStore.setItemAsync("BacoNoCopo.itens", JSON.stringify(listaItens));
-    console.log("GALINHAAAAAAAAAAAAAAA:", listaItens);
-  }, [listaItens]);
+  // useEffect(() => {
+  //   SecureStore.setItemAsync("BacoNoCopo.itens", JSON.stringify(listaItens));
+  //   console.log("GALINHAAAAAAAAAAAAAAA:", listaItens);
+  // }, [listaItens]);
 
   if (!loaded) {
     return null;
@@ -64,13 +66,13 @@ export default function App() {
 
   async function loadItems() {
     const response = await api.get("/items");
-    let newArrItems: Item[] = [];
 
     response.data.map((item: any) => {
       const newItem: Item = {
-        nome: item.name,
-        quantidade: item.quantity,
-        imagem: item.image,
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        image: item.image,
       };
       newArrItems.push(newItem);
     });
@@ -78,49 +80,26 @@ export default function App() {
     setListaItens(newArrItems);
   }
 
-  function submitItem() {
+  async function submitItem() {
     if (addItem) {
-      const newItem: Item = { nome: addItem, quantidade: 0, imagem: preview };
+      const response = await api.post("/items", {
+        name: addItem,
+        image: preview ? preview : imagemDefault,
+        quantity: 0,
+      });
 
-      setListaItens([newItem, ...listaItens]);
+      const newItem: Item = {
+        name: response.data.name,
+        quantity: response.data.quantity,
+        image: response.data.image,
+      };
 
-      console.log("Item Add:", addItem);
-      console.log("Lista Itens:", listaItens);
-
+      newArrItems = listaItens;
+      newArrItems.push(newItem);
+      setListaItens(newArrItems);
       setOpenModal(false);
       setAddItem("");
       setPreview("");
-    }
-  }
-
-  function cleanList() {
-    SecureStore.setItemAsync("BacoNoCopo.itens", "");
-    setListaItens([]);
-  }
-
-  function somaItem() {
-    if (selectedItem) {
-      const listaUpdate = listaItens.map((obj) => {
-        if (obj.nome == selectedItem.nome) {
-          obj.quantidade++;
-        }
-        return obj;
-      });
-
-      setListaItens(listaUpdate);
-    }
-  }
-
-  function subtraiItem() {
-    if (selectedItem) {
-      const listaUpdate = listaItens.map((obj) => {
-        if (obj.nome == selectedItem.nome) {
-          obj.quantidade--;
-        }
-        return obj;
-      });
-
-      setListaItens(listaUpdate);
     }
   }
 
@@ -130,6 +109,49 @@ export default function App() {
       image: preview ? preview : imagemDefault,
       quantity: 0,
     });
+  }
+
+  function cleanList() {
+    // SecureStore.setItemAsync("BacoNoCopo.itens", "");
+    // setListaItens([]);
+  }
+
+  async function somaItem() {
+    if (selectedItem) {
+      selectedItem.quantity += 1;
+
+      const response = await api.put(`/items/${selectedItem.id}`, {
+        quantity: selectedItem.quantity,
+      });
+
+      const listaUpdate = listaItens.map((obj) => {
+        if (obj.id == selectedItem.id) {
+          obj.quantity = response.data.quantity;
+        }
+        return obj;
+      });
+
+      setListaItens(listaUpdate);
+    }
+  }
+
+  async function subtraiItem() {
+    if (selectedItem) {
+      selectedItem.quantity -= 1;
+
+      const response = await api.put(`/items/${selectedItem.id}`, {
+        quantity: selectedItem.quantity,
+      });
+
+      const listaUpdate = listaItens.map((obj) => {
+        if (obj.id == selectedItem.id) {
+          obj.quantity = response.data.quantity;
+        }
+        return obj;
+      });
+
+      setListaItens(listaUpdate);
+    }
   }
 
   async function openImagePicker() {
@@ -239,7 +261,7 @@ export default function App() {
                 onPress={somaItem}
               />
               <Text fontSize="$10" fontWeight="bold">
-                {selectedItem?.quantidade}
+                {selectedItem?.quantity}
               </Text>
               <CustomButton
                 width={"100%"}
@@ -335,21 +357,19 @@ export default function App() {
                       alignContent="center"
                       fontSize={"$8"}
                     >
-                      {item.nome}
+                      {item.name}
                     </Text>
                   </XStack>
                   <XStack jc={"space-between"}>
-                    {preview && (
-                      <Image
-                        borderRadius="$4"
-                        source={{ width: 10, height: 10, uri: preview }}
-                        width={100}
-                        height={100}
-                      />
-                    )}
+                    <Image
+                      borderRadius="$4"
+                      source={{ width: 10, height: 10, uri: item.image }}
+                      width={100}
+                      height={100}
+                    />
                     <YStack jc={"center"}>
                       <Text fontSize="$10" fontWeight="bold">
-                        {item.quantidade}
+                        {item.quantity}
                       </Text>
                     </YStack>
                   </XStack>
