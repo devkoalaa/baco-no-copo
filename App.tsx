@@ -3,7 +3,14 @@ import { useFonts } from "expo-font";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
-import { ScrollView } from "react-native";
+import {
+  Animated,
+  ScrollView,
+  StyleSheet,
+  TouchableHighlight,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   AlertDialog,
   Dialog,
@@ -19,6 +26,8 @@ import { Button as CustomButton } from "./src/components/Button";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
 import { api, imagemDefault } from "./api";
+import { SwipeListView } from "react-native-swipe-list-view";
+import { space } from "@tamagui/theme-base";
 
 interface Item {
   id?: String;
@@ -290,6 +299,239 @@ export default function App() {
     );
   }
 
+  // const swipeStyles = StyleSheet.create({
+  //   container: {
+  //     backgroundColor: "#f4f4f4",
+  //     flex: 1,
+  //   },
+  //   backTextWhite: {
+  //     color: "#FFF",
+  //   },
+  //   rowFront: {
+  //     backgroundColor: "#FFF",
+  //     borderRadius: 5,
+  //     height: 60,
+  //     margin: 5,
+  //     marginBottom: 15,
+  //     shadowColor: "#999",
+  //     shadowOffset: { width: 0, height: 1 },
+  //     shadowOpacity: 0.8,
+  //     shadowRadius: 2,
+  //     elevation: 5,
+  //   },
+  //   rowFrontVisible: {
+  //     backgroundColor: "#FFF",
+  //     borderRadius: 5,
+  //     height: 60,
+  //     padding: 10,
+  //     marginBottom: 15,
+  //   },
+  //   rowBack: {
+  //     alignItems: "center",
+  //     backgroundColor: "#DDD",
+  //     flex: 1,
+  //     flexDirection: "row",
+  //     justifyContent: "space-between",
+  //     paddingLeft: 15,
+  //     margin: 5,
+  //     marginBottom: 15,
+  //     borderRadius: 5,
+  //   },
+  //   backRightBtn: {
+  //     alignItems: "flex-end",
+  //     bottom: 0,
+  //     justifyContent: "center",
+  //     position: "absolute",
+  //     top: 0,
+  //     width: 75,
+  //     paddingRight: 17,
+  //   },
+  //   backRightBtnLeft: {
+  //     backgroundColor: "#1f65ff",
+  //     right: 75,
+  //   },
+  //   backRightBtnRight: {
+  //     backgroundColor: "red",
+  //     right: 0,
+  //     borderTopRightRadius: 5,
+  //     borderBottomRightRadius: 5,
+  //   },
+  //   trash: {
+  //     height: 25,
+  //     width: 25,
+  //     marginRight: 7,
+  //   },
+  //   title: {
+  //     fontSize: 14,
+  //     fontWeight: "bold",
+  //     marginBottom: 5,
+  //     color: "#666",
+  //   },
+  //   details: {
+  //     fontSize: 12,
+  //     color: "#999",
+  //   },
+  // });
+
+  // const closeRow = (rowMap: any, rowKey: any) => {
+  //   if (rowMap[rowKey]) {
+  //     rowMap[rowKey].closeRow();
+  //   }
+  // };
+
+  // const deleteRow = (rowMap: any, rowKey: any) => {
+  //   console.log("rowKey:", rowKey);
+  //   closeRow(rowMap, rowKey);
+  //   const newData = [...listaItens];
+  //   const prevIndex = listaItens.findIndex((item) => item.id === rowKey);
+  //   newData.splice(prevIndex, 1);
+  //   setListaItens(newData);
+  // };
+
+  // const onRowDidOpen = (rowKey: any) => {
+  //   console.log("This row opened", rowKey);
+  // };
+
+  // const onRightActionStatusChange = (rowKey: any) => {
+  //   console.log("onRightActionStatusChange", rowKey);
+  // };
+
+  // const onRightAction = (rowKey: any) => {
+  //   console.log("onRightAction", rowKey);
+  // };
+
+  // const VisibleItem = (props: any) => {
+  //   const { data, rowHeightAnimatedValue, removeRow, rightActionState } = props;
+
+  //   if (rightActionState) {
+  //     Animated.timing(rowHeightAnimatedValue, {
+  //       toValue: 0,
+  //       duration: 200,
+  //       useNativeDriver: false,
+  //     }).start(() => {
+  //       removeRow();
+  //     });
+  //   }
+
+  //   return (
+  //     <Animated.View
+  //       style={[swipeStyles.rowFront, { height: rowHeightAnimatedValue }]}
+  //     >
+  //       <TouchableHighlight
+  //         style={swipeStyles.rowFrontVisible}
+  //         onPress={() => console.log("Element touched")}
+  //         underlayColor={"$gray3"}
+  //       >
+  //         <View>
+  //           <Text style={swipeStyles.title} numberOfLines={1}>
+  //             {data.item.title}
+  //           </Text>
+  //           <Text style={swipeStyles.details} numberOfLines={1}>
+  //             {data.item.details}
+  //           </Text>
+  //         </View>
+  //       </TouchableHighlight>
+  //     </Animated.View>
+  //   );
+  // };
+
+  // const renderItem = (data: any, rowMap: any) => {
+  //   const rowHeightAnimatedValue = new Animated.Value(60);
+
+  //   return (
+  //     <VisibleItem
+  //       data={data}
+  //       style={{ backgroundColor: "blue" }}
+  //       rowHeightAnimatedValue={rowHeightAnimatedValue}
+  //       removeRow={() => deleteRow(rowMap, data.item.key)}
+  //     />
+  //   );
+  // };
+
+  // const HiddenItemWithActions = (props: any) => {
+  //   const {
+  //     swipeAnimatedValue,
+  //     leftActionActivated,
+  //     rightActionActivated,
+  //     rowActionAnimatedValue,
+  //     rowHeightAnimatedValue,
+  //     onClose,
+  //     onDelete,
+  //   } = props;
+
+  //   if (rightActionActivated) {
+  //     Animated.spring(rowActionAnimatedValue, {
+  //       toValue: 500,
+  //       useNativeDriver: false,
+  //     }).start();
+  //   } else {
+  //     Animated.spring(rowActionAnimatedValue, {
+  //       toValue: 75,
+  //       useNativeDriver: false,
+  //     }).start();
+  //   }
+
+  //   return (
+  //     <Animated.View
+  //       style={[swipeStyles.rowBack, { height: rowHeightAnimatedValue }]}
+  //     >
+  //       {!leftActionActivated && (
+  //         <Animated.View
+  //           style={[
+  //             swipeStyles.backRightBtn,
+  //             swipeStyles.backRightBtnRight,
+  //             {
+  //               flex: 1,
+  //               width: rowActionAnimatedValue,
+  //               backgroundColor: "green",
+  //             },
+  //           ]}
+  //         >
+  //           <TouchableOpacity
+  //             style={[swipeStyles.backRightBtn, swipeStyles.backRightBtnRight]}
+  //             onPress={onDelete}
+  //           >
+  //             <Animated.View
+  //               style={[
+  //                 swipeStyles.trash,
+  //                 {
+  //                   transform: [
+  //                     {
+  //                       scale: swipeAnimatedValue.interpolate({
+  //                         inputRange: [-90, -45],
+  //                         outputRange: [1, 0],
+  //                         extrapolate: "clamp",
+  //                       }),
+  //                     },
+  //                   ],
+  //                 },
+  //               ]}
+  //             >
+  //               <Trash />
+  //             </Animated.View>
+  //           </TouchableOpacity>
+  //         </Animated.View>
+  //       )}
+  //     </Animated.View>
+  //   );
+  // };
+
+  // const renderHiddenItem = (data: any, rowMap: any) => {
+  //   const rowActionAnimatedValue = new Animated.Value(75);
+  //   const rowHeightAnimatedValue = new Animated.Value(60);
+
+  //   return (
+  //     <HiddenItemWithActions
+  //       data={data}
+  //       rowMap={rowMap}
+  //       rowActionAnimatedValue={rowActionAnimatedValue}
+  //       rowHeightAnimatedValue={rowHeightAnimatedValue}
+  //       onClose={() => closeRow(rowMap, data.item.key)}
+  //       onDelete={() => deleteRow(rowMap, data.item.key)}
+  //     />
+  //   );
+  // };
+
   return (
     <TamaguiProvider config={config}>
       <Theme name={"dark"}>
@@ -316,7 +558,19 @@ export default function App() {
             <ModalCreate />
             <ModalAlert />
           </XStack>
-          <ScrollView>
+          {/* <SwipeListView
+            data={listaItens}
+            renderItem={renderItem}
+            renderHiddenItem={renderHiddenItem}
+            rightOpenValue={-70}
+            disableRightSwipe
+            onRowDidOpen={onRowDidOpen}
+            rightActivationValue={-100}
+            rightActionValue={-750}
+            onRightAction={onRightAction}
+            onRightActionStatusChange={onRightActionStatusChange}
+          /> */}
+          {/* <ScrollView>
             {listaItens &&
               listaItens.map((item: Item, index: number) => (
                 <YStack
@@ -356,7 +610,7 @@ export default function App() {
                   </XStack>
                 </YStack>
               ))}
-          </ScrollView>
+          </ScrollView> */}
         </YStack>
       </Theme>
     </TamaguiProvider>
