@@ -43,22 +43,12 @@ export default function App() {
   let newArrItems: Item[] = [];
 
   useEffect(() => {
-    // SecureStore.getItemAsync("BacoNoCopo.itens").then((response) => {
-    //   const resultado = response;
-    //   resultado && setListaItens(JSON.parse(resultado));
-    // });
-
     loadItems();
   }, []);
 
   useEffect(() => {
     setPreview(selectedItem?.image || "");
   }, [selectedItem]);
-
-  // useEffect(() => {
-  //   SecureStore.setItemAsync("BacoNoCopo.itens", JSON.stringify(listaItens));
-  //   console.log("GALINHAAAAAAAAAAAAAAA:", listaItens);
-  // }, [listaItens]);
 
   if (!loaded) {
     return null;
@@ -82,38 +72,24 @@ export default function App() {
 
   async function submitItem() {
     if (addItem) {
-      const response = await api.post("/items", {
+      await api.post("/items", {
         name: addItem,
         image: preview ? preview : imagemDefault,
         quantity: 0,
       });
 
-      const newItem: Item = {
-        name: response.data.name,
-        quantity: response.data.quantity,
-        image: response.data.image,
-      };
-
-      newArrItems = listaItens;
-      newArrItems.push(newItem);
-      setListaItens(newArrItems);
       setOpenModal(false);
       setAddItem("");
       setPreview("");
+      loadItems();
     }
   }
 
-  async function handleCreateItem() {
-    await api.post("/items", {
-      name: addItem,
-      image: preview ? preview : imagemDefault,
-      quantity: 0,
+  async function cleanList() {
+    listaItens.map(async (item) => {
+      await api.delete(`items/${item.id}`);
     });
-  }
-
-  function cleanList() {
-    // SecureStore.setItemAsync("BacoNoCopo.itens", "");
-    // setListaItens([]);
+    setListaItens([]);
   }
 
   async function somaItem() {
@@ -169,7 +145,7 @@ export default function App() {
     }
   }
 
-  function Modal() {
+  function ModalCreate() {
     return (
       <Dialog open={openModal}>
         <Dialog.Portal>
@@ -178,8 +154,9 @@ export default function App() {
               setOpenModal(false);
               setPreview("");
             }}
+            key={0}
           />
-          <Dialog.Content>
+          <Dialog.Content key={1}>
             <Dialog.Title>
               <Text>Adicionar item</Text>
             </Dialog.Title>
@@ -219,7 +196,6 @@ export default function App() {
                 tipo="normal"
                 onPress={() => {
                   submitItem();
-                  handleCreateItem();
                 }}
               />
             </YStack>
@@ -233,43 +209,45 @@ export default function App() {
     return (
       <Dialog open={openModalItem}>
         <Dialog.Portal>
-          <Dialog.Overlay onPress={() => setOpenModalItem(false)} />
-          <Dialog.Content>
+          <Dialog.Overlay onPress={() => setOpenModalItem(false)} key={0} />
+          <Dialog.Content key={1}>
             <Dialog.Description />
-            <YStack alignItems="center" space="$2">
-              <Text
-                fontWeight="bold"
-                marginBottom="$3"
-                alignContent="center"
-                fontSize={"$8"}
-              >
-                Editar item
-              </Text>
-              {preview && (
-                <Image
-                  margin="$2"
-                  borderRadius="$4"
-                  source={{ width: 10, height: 10, uri: preview }}
-                  width={250}
-                  height={250}
+            {selectedItem && (
+              <YStack alignItems="center" space="$2">
+                <Text
+                  fontWeight="bold"
+                  marginBottom="$3"
+                  alignContent="center"
+                  fontSize={"$8"}
+                >
+                  {selectedItem.name}
+                </Text>
+                {preview && (
+                  <Image
+                    margin="$2"
+                    borderRadius="$4"
+                    source={{ width: 10, height: 10, uri: preview }}
+                    width={250}
+                    height={250}
+                  />
+                )}
+                <CustomButton
+                  width={"100%"}
+                  icon={Plus}
+                  tipo="normal"
+                  onPress={somaItem}
                 />
-              )}
-              <CustomButton
-                width={"100%"}
-                icon={Plus}
-                tipo="normal"
-                onPress={somaItem}
-              />
-              <Text fontSize="$10" fontWeight="bold">
-                {selectedItem?.quantity}
-              </Text>
-              <CustomButton
-                width={"100%"}
-                icon={Minus}
-                tipo="normal"
-                onPress={subtraiItem}
-              />
-            </YStack>
+                <Text fontSize="$10" fontWeight="bold">
+                  {selectedItem.quantity}
+                </Text>
+                <CustomButton
+                  width={"100%"}
+                  icon={Minus}
+                  tipo="normal"
+                  onPress={subtraiItem}
+                />
+              </YStack>
+            )}
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog>
@@ -280,8 +258,11 @@ export default function App() {
     return (
       <AlertDialog open={openModalAlert}>
         <AlertDialog.Portal>
-          <AlertDialog.Overlay onPress={() => setOpenModalAlert(false)} />
-          <AlertDialog.Content>
+          <AlertDialog.Overlay
+            onPress={() => setOpenModalAlert(false)}
+            key={0}
+          />
+          <AlertDialog.Content key={1}>
             <YStack alignItems="center" space="$2">
               <Text
                 fontWeight="bold"
@@ -297,7 +278,7 @@ export default function App() {
                 tipo="delete"
                 icon={Trash}
                 onPress={() => {
-                  setListaItens([]), setOpenModalAlert(false);
+                  cleanList(), setOpenModalAlert(false);
                 }}
               >
                 Sim
@@ -332,8 +313,7 @@ export default function App() {
             </XStack>
           </XStack>
           <XStack space="$2" marginVertical="$2" jc="flex-end">
-            <Modal />
-            <ModalItem />
+            <ModalCreate />
             <ModalAlert />
           </XStack>
           <ScrollView>
@@ -350,6 +330,7 @@ export default function App() {
                   backgroundColor="$gray3"
                   borderRadius="$4"
                 >
+                  <ModalItem />
                   <XStack jc="center">
                     <Text
                       fontWeight="bold"
