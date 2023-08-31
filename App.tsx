@@ -18,6 +18,7 @@ import {
 import { Button as CustomButton } from "./src/components/Button";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
+import { api, imagemDefault } from "./api";
 
 interface Item {
   nome: string;
@@ -44,6 +45,8 @@ export default function App() {
       const resultado = response;
       resultado && setListaItens(JSON.parse(resultado));
     });
+
+    loadItems();
   }, []);
 
   useEffect(() => {
@@ -52,10 +55,27 @@ export default function App() {
 
   useEffect(() => {
     SecureStore.setItemAsync("BacoNoCopo.itens", JSON.stringify(listaItens));
+    console.log("GALINHAAAAAAAAAAAAAAA:", listaItens);
   }, [listaItens]);
 
   if (!loaded) {
     return null;
+  }
+
+  async function loadItems() {
+    const response = await api.get("/items");
+    let newArrItems: Item[] = [];
+
+    response.data.map((item: any) => {
+      const newItem: Item = {
+        nome: item.name,
+        quantidade: item.quantity,
+        imagem: item.image,
+      };
+      newArrItems.push(newItem);
+    });
+
+    setListaItens(newArrItems);
   }
 
   function submitItem() {
@@ -104,6 +124,14 @@ export default function App() {
     }
   }
 
+  async function handleCreateItem() {
+    await api.post("/items", {
+      name: addItem,
+      image: preview ? preview : imagemDefault,
+      quantity: 0,
+    });
+  }
+
   async function openImagePicker() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -125,7 +153,8 @@ export default function App() {
         <Dialog.Portal>
           <Dialog.Overlay
             onPress={() => {
-              setOpenModal(false), setPreview("");
+              setOpenModal(false);
+              setPreview("");
             }}
           />
           <Dialog.Content>
@@ -166,7 +195,10 @@ export default function App() {
                 width={"100%"}
                 icon={Plus}
                 tipo="normal"
-                onPress={submitItem}
+                onPress={() => {
+                  submitItem();
+                  handleCreateItem();
+                }}
               />
             </YStack>
           </Dialog.Content>
@@ -307,12 +339,14 @@ export default function App() {
                     </Text>
                   </XStack>
                   <XStack jc={"space-between"}>
-                    <Image
-                      borderRadius="$4"
-                      source={{ width: 10, height: 10, uri: item.imagem }}
-                      width={100}
-                      height={100}
-                    />
+                    {preview && (
+                      <Image
+                        borderRadius="$4"
+                        source={{ width: 10, height: 10, uri: preview }}
+                        width={100}
+                        height={100}
+                      />
+                    )}
                     <YStack jc={"center"}>
                       <Text fontSize="$10" fontWeight="bold">
                         {item.quantidade}
