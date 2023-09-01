@@ -72,6 +72,44 @@ export default function App() {
   }
 
   async function submitItem() {
+    // let coverUrl = "";
+
+    // console.log(preview);
+
+    // if (preview) {
+    //   // const uploadFormData = new FormData();
+
+    //   // uploadFormData.append("file", {
+    //   //   uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540devkoala%252Fbaconocopo/ImagePicker/a0975873-75ed-4260-b2fb-cf42aa04f3b0.png",
+    //   //   name: "photo.png",
+    //   //   type: "image/png",
+    //   // } as any);
+
+    //   var image = {
+    //     uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540devkoala%252Fbaconocopo/ImagePicker/a0975873-75ed-4260-b2fb-cf42aa04f3b0.png",
+    //     type: "image/png",
+    //     name: "photo.png",
+    //   } as any;
+
+    //   var body = new FormData();
+    //   body.append("file", {
+    //     uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540devkoala%252Fbaconocopo/ImagePicker/a0975873-75ed-4260-b2fb-cf42aa04f3b0.png",
+    //     name: "image.png",
+    //     type: "image/png",
+    //   } as any);
+
+    //   console.log("GALINHAAAAAAAAAAAAA:", body);
+
+    //   const uploadResponse = await api.post("/upload", body, {
+    //     headers: {
+    //       "Content-Type": "multipart/form-data",
+    //     },
+    //   });
+
+    //   console.log("uploadResponse:", uploadResponse);
+    //   // coverUrl = uploadResponse.data.fileUrl;
+    // }
+
     if (addItem) {
       await api.post("/items", {
         name: addItem,
