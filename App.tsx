@@ -2,8 +2,8 @@ import { Image as ImageIcon, Minus, Plus, Trash } from "@tamagui/lucide-icons";
 import { useFonts } from "expo-font";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
-import React, { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { RefreshControl, ScrollView, TouchableOpacity } from "react-native";
 import {
   AlertDialog,
   Dialog,
@@ -19,6 +19,7 @@ import { Button as CustomButton } from "./src/components/Button";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
 import { api, imagemDefault } from "./api";
+import ModalCreate from "./src/components/ModalCreate";
 
 interface Item {
   id?: String;
@@ -41,10 +42,24 @@ export default function App() {
   const [openModalAlert, setOpenModalAlert] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item>();
   const [itemToDelete, setItemToDelete] = useState<Item | null>();
+  const [refreshing, setRefreshing] = useState(false);
+  const [idUsuario, setIdUsuario] = useState("");
   let newArrItems: Item[] = [];
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadItems();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   useEffect(() => {
     loadItems();
+    SecureStore.getItemAsync("BacoNoCopo.idUsuario").then((response) => {
+      const resultado = response;
+      resultado && setIdUsuario(JSON.parse(resultado));
+    });
   }, []);
 
   useEffect(() => {
@@ -57,6 +72,7 @@ export default function App() {
 
   async function loadItems() {
     const response = await api.get("/items");
+    newArrItems = [];
 
     response.data.map((item: any) => {
       const newItem: Item = {
@@ -72,49 +88,32 @@ export default function App() {
   }
 
   async function submitItem() {
-    // let coverUrl = "";
+    let coverUrl = "";
 
-    // console.log(preview);
+    if (preview) {
+      const uploadFormData = new FormData();
 
-    // if (preview) {
-    //   // const uploadFormData = new FormData();
+      uploadFormData.append("image", {
+        uri: preview,
+        name: `${addItem}.png`,
+        type: "image/png",
+      } as any);
 
-    //   // uploadFormData.append("file", {
-    //   //   uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540devkoala%252Fbaconocopo/ImagePicker/a0975873-75ed-4260-b2fb-cf42aa04f3b0.png",
-    //   //   name: "photo.png",
-    //   //   type: "image/png",
-    //   // } as any);
+      const response = await api.post("/upload", uploadFormData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    //   var image = {
-    //     uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540devkoala%252Fbaconocopo/ImagePicker/a0975873-75ed-4260-b2fb-cf42aa04f3b0.png",
-    //     type: "image/png",
-    //     name: "photo.png",
-    //   } as any;
-
-    //   var body = new FormData();
-    //   body.append("file", {
-    //     uri: "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540devkoala%252Fbaconocopo/ImagePicker/a0975873-75ed-4260-b2fb-cf42aa04f3b0.png",
-    //     name: "image.png",
-    //     type: "image/png",
-    //   } as any);
-
-    //   console.log("GALINHAAAAAAAAAAAAA:", body);
-
-    //   const uploadResponse = await api.post("/upload", body, {
-    //     headers: {
-    //       "Content-Type": "multipart/form-data",
-    //     },
-    //   });
-
-    //   console.log("uploadResponse:", uploadResponse);
-    //   // coverUrl = uploadResponse.data.fileUrl;
-    // }
+      coverUrl = response.data.imageUrl;
+    }
 
     if (addItem) {
       await api.post("/items", {
         name: addItem,
-        image: preview ? preview : imagemDefault,
+        image: coverUrl ? coverUrl : imagemDefault,
         quantity: 0,
+        userId: idUsuario,
       });
 
       setOpenModal(false);
@@ -185,66 +184,66 @@ export default function App() {
     }
   }
 
-  function ModalCreate() {
-    return (
-      <Dialog open={openModal}>
-        <Dialog.Portal>
-          <Dialog.Overlay
-            onPress={() => {
-              setOpenModal(false);
-              setPreview("");
-            }}
-            key={0}
-          />
-          <Dialog.Content key={1}>
-            <Dialog.Title>
-              <Text>Adicionar item</Text>
-            </Dialog.Title>
-            <Dialog.Description />
-            <YStack alignItems="center">
-              {preview && (
-                <Image
-                  margin="$2"
-                  borderRadius="$4"
-                  source={{ width: 10, height: 10, uri: preview }}
-                  width={250}
-                  height={250}
-                />
-              )}
-              <XStack space="$2">
-                <Input
-                  keyboardType="default"
-                  returnKeyType="done"
-                  f={1}
-                  w="$5"
-                  h="$5"
-                  autoFocus
-                  value={addItem}
-                  onChangeText={setAddItem}
-                  placeholder="Descrição do item"
-                  focusStyle={{ bw: 2, boc: "$blue10" }}
-                  marginBottom="$2"
-                />
-                <CustomButton
-                  icon={ImageIcon}
-                  tipo="toxic"
-                  onPress={openImagePicker}
-                />
-              </XStack>
-              <CustomButton
-                width={"100%"}
-                icon={Plus}
-                tipo="normal"
-                onPress={() => {
-                  submitItem();
-                }}
-              />
-            </YStack>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
-    );
-  }
+  // function ModalCreate() {
+  //   return (
+  //     <Dialog open={openModal}>
+  //       <Dialog.Portal>
+  //         <Dialog.Overlay
+  //           onPress={() => {
+  //             setOpenModal(false);
+  //             setPreview("");
+  //           }}
+  //           key={0}
+  //         />
+  //         <Dialog.Content key={1}>
+  //           <Dialog.Title>
+  //             <Text>Adicionar item</Text>
+  //           </Dialog.Title>
+  //           <Dialog.Description />
+  //           <YStack alignItems="center">
+  //             {preview && (
+  //               <Image
+  //                 margin="$2"
+  //                 borderRadius="$4"
+  //                 source={{ width: 10, height: 10, uri: preview }}
+  //                 width={250}
+  //                 height={250}
+  //               />
+  //             )}
+  //             <XStack space="$2">
+  //               <Input
+  //                 keyboardType="default"
+  //                 returnKeyType="done"
+  //                 f={1}
+  //                 w="$5"
+  //                 h="$5"
+  //                 autoFocus
+  //                 value={addItem}
+  //                 onChangeText={setAddItem}
+  //                 placeholder="Descrição do item"
+  //                 focusStyle={{ bw: 2, boc: "$blue10" }}
+  //                 marginBottom="$2"
+  //               />
+  //               <CustomButton
+  //                 icon={ImageIcon}
+  //                 tipo="toxic"
+  //                 onPress={openImagePicker}
+  //               />
+  //             </XStack>
+  //             <CustomButton
+  //               width={"100%"}
+  //               icon={Plus}
+  //               tipo="normal"
+  //               onPress={() => {
+  //                 submitItem();
+  //               }}
+  //             />
+  //           </YStack>
+  //         </Dialog.Content>
+  //       </Dialog.Portal>
+  //     </Dialog>
+  //   );
+  // }
 
   function ModalItem() {
     return (
@@ -362,7 +361,7 @@ export default function App() {
   return (
     <TamaguiProvider config={config}>
       <Theme name={"dark"}>
-        <YStack bg="$background" f={1} p="$3" pt="$8">
+        <YStack bg="$background" f={1} p="$3">
           <XStack jc="space-between" ai="center">
             <User />
             <XStack space={"$2"}>
@@ -382,10 +381,70 @@ export default function App() {
             </XStack>
           </XStack>
           <XStack space="$2" marginVertical="$2" jc="flex-end">
-            <ModalCreate />
+            <Dialog open={openModal}>
+              {/* <ModalCreate /> */}
+              <Dialog.Portal>
+                <Dialog.Overlay
+                  onPress={() => {
+                    // setOpenModal(false);
+                    setPreview("");
+                  }}
+                  key={0}
+                />
+                <Dialog.Content key={1}>
+                  <Dialog.Title>
+                    <Text>Adicionar item</Text>
+                  </Dialog.Title>
+                  <Dialog.Description />
+                  <YStack alignItems="center">
+                    {preview && (
+                      <Image
+                        margin="$2"
+                        borderRadius="$4"
+                        source={{ width: 10, height: 10, uri: preview }}
+                        width={250}
+                        height={250}
+                      />
+                    )}
+                    <XStack space="$2">
+                      <Input
+                        keyboardType="default"
+                        returnKeyType="done"
+                        f={1}
+                        w="$5"
+                        h="$5"
+                        autoFocus
+                        value={addItem}
+                        onChangeText={setAddItem}
+                        placeholder="Descrição do item"
+                        focusStyle={{ bw: 2, boc: "$blue10" }}
+                        marginBottom="$2"
+                      />
+                      <CustomButton
+                        icon={ImageIcon}
+                        tipo="toxic"
+                        onPress={openImagePicker}
+                      />
+                    </XStack>
+                    <CustomButton
+                      width={"100%"}
+                      icon={Plus}
+                      tipo="normal"
+                      onPress={() => {
+                        submitItem();
+                      }}
+                    />
+                  </YStack>
+                </Dialog.Content>
+              </Dialog.Portal>
+            </Dialog>
             <ModalAlert />
           </XStack>
-          <ScrollView>
+          <ScrollView
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
             {listaItens &&
               listaItens.map((item: Item, index: number) => (
                 <YStack
