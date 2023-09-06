@@ -6,30 +6,32 @@ import * as SecureStore from "expo-secure-store";
 export function User() {
   const [nomeUser, setNomeUser] = useState("Koala");
   const [imagem, setImagem] = useState("https://github.com/devkoalaa.png");
+  const koalaId = "7743c8dd-bb47-4707-81a4-34b8e42bd367";
+  const afrontosoId = "301e637b-2d8b-436c-9798-6db0920a8009";
 
   useEffect(() => {
+    console.log("entrada");
     SecureStore.getItemAsync("BacoNoCopo.usuario").then((response) => {
       const resultado = response;
-      resultado && setNomeUser(JSON.parse(resultado));
+      resultado && setNomeUser(resultado);
     });
+    console.log("saida", nomeUser);
   }, []);
 
   useEffect(() => {
     if (nomeUser == "Afrontoso") {
       setImagem("https://github.com/afrontoso.png");
       SecureStore.setItemAsync("BacoNoCopo.usuario", nomeUser);
-      SecureStore.setItemAsync(
-        "BacoNoCopo.idUser",
-        "301e637b-2d8b-436c-9798-6db0920a8009"
-      );
+      SecureStore.setItemAsync("BacoNoCopo.userId", afrontosoId);
     } else {
       setImagem("https://github.com/devkoalaa.png");
       SecureStore.setItemAsync("BacoNoCopo.usuario", nomeUser);
-      SecureStore.setItemAsync(
-        "BacoNoCopo.idUser",
-        "7743c8dd-bb47-4707-81a4-34b8e42bd367"
-      );
+      SecureStore.setItemAsync("BacoNoCopo.userId", koalaId);
     }
+  }, [nomeUser]);
+
+  useEffect(() => {
+    console.log(nomeUser);
   }, [nomeUser]);
 
   return (

@@ -43,7 +43,7 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<Item>();
   const [itemToDelete, setItemToDelete] = useState<Item | null>();
   const [refreshing, setRefreshing] = useState(false);
-  const [idUsuario, setIdUsuario] = useState("");
+  const [userId, setUserId] = useState("");
   let newArrItems: Item[] = [];
 
   const onRefresh = useCallback(() => {
@@ -56,10 +56,6 @@ export default function App() {
 
   useEffect(() => {
     loadItems();
-    SecureStore.getItemAsync("BacoNoCopo.idUsuario").then((response) => {
-      const resultado = response;
-      resultado && setIdUsuario(JSON.parse(resultado));
-    });
   }, []);
 
   useEffect(() => {
@@ -89,6 +85,8 @@ export default function App() {
 
   async function submitItem() {
     let coverUrl = "";
+    const response = await SecureStore.getItemAsync("BacoNoCopo.userId");
+    response && setUserId(response);
 
     if (preview) {
       const uploadFormData = new FormData();
@@ -113,7 +111,7 @@ export default function App() {
         name: addItem,
         image: coverUrl ? coverUrl : imagemDefault,
         quantity: 0,
-        userId: idUsuario,
+        userId: userId,
       });
 
       setOpenModal(false);
@@ -123,7 +121,10 @@ export default function App() {
     }
   }
 
-  async function cleanList() {
+  async function cleanList() {    
+    const response = await SecureStore.getItemAsync("BacoNoCopo.userId");
+    response && setUserId(response);
+
     listaItens.map(async (item) => {
       await api.delete(`items/${item.id}`);
     });
