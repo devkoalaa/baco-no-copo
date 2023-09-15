@@ -387,7 +387,7 @@ export default function App() {
               <Dialog.Portal>
                 <Dialog.Overlay
                   onPress={() => {
-                    // setOpenModal(false);
+                    setOpenModal(false);
                     setPreview("");
                   }}
                   key={0}
