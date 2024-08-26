@@ -2,7 +2,8 @@ import { Image as ImageIcon, Minus, Plus, Trash } from "@tamagui/lucide-icons";
 import { useFonts } from "expo-font";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
-import React, { useEffect, useState, useCallback } from "react";
+import { StatusBar } from "expo-status-bar";
+import React, { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, TouchableOpacity } from "react-native";
 import {
   AlertDialog,
@@ -15,11 +16,10 @@ import {
   XStack,
   YStack,
 } from "tamagui";
+import { api, imagemDefault } from "./api";
 import { Button as CustomButton } from "./src/components/Button";
 import { User } from "./src/components/User";
 import config from "./tamagui.config";
-import { api, imagemDefault } from "./api";
-import ModalCreate from "./src/components/ModalCreate";
 
 interface Item {
   id?: String;
@@ -121,7 +121,7 @@ export default function App() {
     }
   }
 
-  async function cleanList() {    
+  async function cleanList() {
     const response = await SecureStore.getItemAsync("BacoNoCopo.userId");
     response && setUserId(response);
 
@@ -184,67 +184,6 @@ export default function App() {
       console.log(error);
     }
   }
-
-  // function ModalCreate() {
-  //   return (
-  //     <Dialog open={openModal}>
-  //       <Dialog.Portal>
-  //         <Dialog.Overlay
-  //           onPress={() => {
-  //             setOpenModal(false);
-  //             setPreview("");
-  //           }}
-  //           key={0}
-  //         />
-  //         <Dialog.Content key={1}>
-  //           <Dialog.Title>
-  //             <Text>Adicionar item</Text>
-  //           </Dialog.Title>
-  //           <Dialog.Description />
-  //           <YStack alignItems="center">
-  //             {preview && (
-  //               <Image
-  //                 margin="$2"
-  //                 borderRadius="$4"
-  //                 source={{ width: 10, height: 10, uri: preview }}
-  //                 width={250}
-  //                 height={250}
-  //               />
-  //             )}
-  //             <XStack space="$2">
-  //               <Input
-  //                 keyboardType="default"
-  //                 returnKeyType="done"
-  //                 f={1}
-  //                 w="$5"
-  //                 h="$5"
-  //                 autoFocus
-  //                 value={addItem}
-  //                 onChangeText={setAddItem}
-  //                 placeholder="Descrição do item"
-  //                 focusStyle={{ bw: 2, boc: "$blue10" }}
-  //                 marginBottom="$2"
-  //               />
-  //               <CustomButton
-  //                 icon={ImageIcon}
-  //                 tipo="toxic"
-  //                 onPress={openImagePicker}
-  //               />
-  //             </XStack>
-  //             <CustomButton
-  //               width={"100%"}
-  //               icon={Plus}
-  //               tipo="normal"
-  //               onPress={() => {
-  //                 submitItem();
-  //               }}
-  //             />
-  //           </YStack>
-  //         </Dialog.Content>
-  //       </Dialog.Portal>
-  //     </Dialog>
-  //   );
-  // }
 
   function ModalItem() {
     return (
@@ -362,7 +301,8 @@ export default function App() {
   return (
     <TamaguiProvider config={config}>
       <Theme name={"dark"}>
-        <YStack bg="$background" f={1} p="$3">
+        <StatusBar style="light" />
+        <YStack bg="$background" f={1} p="$3" pt={"$10"}>
           <XStack jc="space-between" ai="center">
             <User />
             <XStack space={"$2"}>

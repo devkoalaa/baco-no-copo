@@ -10,12 +10,10 @@ export function User() {
   const afrontosoId = "301e637b-2d8b-436c-9798-6db0920a8009";
 
   useEffect(() => {
-    console.log("entrada");
     SecureStore.getItemAsync("BacoNoCopo.usuario").then((response) => {
       const resultado = response;
       resultado && setNomeUser(resultado);
     });
-    console.log("saida", nomeUser);
   }, []);
 
   useEffect(() => {
@@ -28,10 +26,6 @@ export function User() {
       SecureStore.setItemAsync("BacoNoCopo.usuario", nomeUser);
       SecureStore.setItemAsync("BacoNoCopo.userId", koalaId);
     }
-  }, [nomeUser]);
-
-  useEffect(() => {
-    console.log(nomeUser);
   }, [nomeUser]);
 
   return (
